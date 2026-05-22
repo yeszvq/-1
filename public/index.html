@@ -2,355 +2,659 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PING</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GACHI RPS ★ HARD DOJO</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #111;
+    --bg3: #1a1a1a;
+    --gold: #f0c040;
+    --red: #e03030;
+    --cyan: #00e5ff;
+    --green: #39ff14;
+    --dim: #444;
+    --text: #ddd;
+    --border: #333;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--gold);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  #header .logo {
+    color: var(--gold);
+    font-size: 15px;
+    letter-spacing: 3px;
+    text-shadow: 0 0 8px var(--gold);
+  }
+  #header .me { color: var(--cyan); font-size: 11px; }
 
-html, body {
-  width: 100%; height: 100%;
-  background: #050d1a;
-  font-family: 'Share Tech Mono', monospace;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  overflow: hidden;
-  color: #39ff7a;
-  transition: background 0.5s;
-}
+  #app {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
 
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
-  pointer-events: none;
-  z-index: 10;
-}
+  /* ---- LOGIN ---- */
+  #screen-login {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+  }
+  #screen-login .title {
+    color: var(--gold);
+    font-size: 22px;
+    text-align: center;
+    letter-spacing: 4px;
+    text-shadow: 0 0 16px var(--gold);
+    line-height: 1.4;
+  }
+  #screen-login .sub {
+    color: var(--dim);
+    font-size: 11px;
+    text-align: center;
+  }
+  #nick-input {
+    background: var(--bg3);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    padding: 10px 16px;
+    outline: none;
+    width: 240px;
+    text-align: center;
+    letter-spacing: 2px;
+  }
+  #nick-input::placeholder { color: var(--dim); }
+  .btn {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 8px 24px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all .15s;
+    text-transform: uppercase;
+  }
+  .btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 12px var(--gold); }
+  .btn-red { border-color: var(--red); color: var(--red); }
+  .btn-red:hover { background: var(--red); color: #fff; box-shadow: 0 0 12px var(--red); }
+  .btn-cyan { border-color: var(--cyan); color: var(--cyan); }
+  .btn-cyan:hover { background: var(--cyan); color: #000; box-shadow: 0 0 12px var(--cyan); }
 
-canvas#bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.22;
-}
+  /* ---- LOBBY ---- */
+  #screen-lobby {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 0;
+    overflow: hidden;
+  }
+  .panel {
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 5px 10px;
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 2px;
+    flex-shrink: 0;
+  }
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px;
+  }
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--dim); }
 
-.ui { position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  /* players list */
+  .player-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+    border-bottom: 1px solid #1e1e1e;
+  }
+  .player-row .pname { color: var(--cyan); }
+  .player-row .pname.me { color: var(--gold); }
+  .player-row .status { font-size: 10px; color: var(--dim); }
+  .player-row .status.ingame { color: var(--red); }
 
-/* THEME PICKER */
-.themes {
-  display: flex;
-  gap: 10px;
-}
-.theme-btn {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.5);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 12px;
-  padding: 6px 14px;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: all 0.15s;
-  letter-spacing: 1px;
-}
-.theme-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
-.theme-btn.active { border-color: currentColor; color: inherit; }
+  /* leaderboard */
+  .lb-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr 40px 40px 50px;
+    gap: 4px;
+    padding: 3px 8px;
+    color: var(--dim);
+    font-size: 9px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .lb-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 40px 40px 50px;
+    gap: 4px;
+    padding: 4px 8px;
+    border-bottom: 1px solid #1a1a1a;
+    align-items: center;
+  }
+  .lb-row .rank { color: var(--dim); font-size: 10px; }
+  .lb-row .lnick { color: var(--cyan); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-row .won { color: var(--green); }
+  .lb-row .lost { color: var(--red); }
+  .lb-row .ratio { color: var(--gold); }
 
-.name-block { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.name-label { font-size: 10px; letter-spacing: 3px; opacity: 0.4; }
-.name-input {
-  background: none; border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-  color: inherit;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 16px; text-align: center; outline: none;
-  padding: 4px 8px; width: 180px; caret-color: currentColor;
-}
-.name-input::placeholder { opacity: 0.3; }
+  /* status bar */
+  #statusbar {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 4px 10px;
+    font-size: 10px;
+    color: var(--dim);
+    flex-shrink: 0;
+  }
+  #statusbar span { color: var(--cyan); }
 
-.btn {
-  width: 160px; height: 160px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.04);
-  color: inherit;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 20px; letter-spacing: 3px;
-  cursor: pointer;
-  transition: all 0.1s;
-  position: relative; overflow: hidden;
-}
-.btn:hover { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); }
-.btn:active { transform: scale(0.95); background: rgba(255,255,255,0.15); }
+  /* ---- GAME ---- */
+  #screen-game {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px;
+  }
+  #game-title { color: var(--gold); font-size: 13px; letter-spacing: 3px; text-align: center; }
+  #game-vs { color: var(--text); font-size: 16px; text-align: center; }
+  #game-vs .opp { color: var(--red); }
+  #timer-display {
+    font-size: 36px;
+    color: var(--gold);
+    text-shadow: 0 0 20px var(--gold);
+    transition: color .3s;
+  }
+  #timer-display.urgent { color: var(--red); text-shadow: 0 0 20px var(--red); animation: pulse .5s infinite alternate; }
+  @keyframes pulse { from { opacity: 1; } to { opacity: .4; } }
+  #choices {
+    display: flex;
+    gap: 12px;
+  }
+  .choice-btn {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 28px;
+    width: 72px;
+    height: 72px;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .choice-btn:hover { border-color: var(--gold); box-shadow: 0 0 10px var(--gold); transform: scale(1.05); }
+  .choice-btn.selected { border-color: var(--green); box-shadow: 0 0 14px var(--green); background: #0a2000; }
+  .choice-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+  #waiting-msg { color: var(--dim); font-size: 11px; text-align: center; }
 
-.ripple {
-  position: absolute; border-radius: 50%;
-  border: 1px solid currentColor;
-  animation: ripple-out 0.7s ease-out forwards;
-  pointer-events: none;
-}
-@keyframes ripple-out {
-  0%   { width:0; height:0; top:50%; left:50%; opacity:1; transform:translate(-50%,-50%); }
-  100% { width:280px; height:280px; top:50%; left:50%; opacity:0; transform:translate(-50%,-50%); }
-}
+  /* ---- RESULT ---- */
+  #screen-result {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+  #result-ascii {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--gold);
+    white-space: pre;
+    min-height: 80px;
+  }
+  #result-text { font-size: 15px; letter-spacing: 1px; }
+  #result-text.win { color: var(--green); text-shadow: 0 0 10px var(--green); }
+  #result-text.lose { color: var(--red); text-shadow: 0 0 10px var(--red); }
+  #result-text.draw { color: var(--gold); }
+  #result-detail { color: var(--dim); font-size: 11px; }
 
-.log { width: 300px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 3px; }
-.log-entry { font-size: 11px; opacity: 0.5; animation: fadein 0.3s ease; letter-spacing: 1px; }
-.log-entry.own { opacity: 1; }
-@keyframes fadein { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+  /* ---- CHALLENGE MODAL ---- */
+  #modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  #modal.hidden { display: none; }
+  #modal-box {
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    padding: 24px 28px;
+    max-width: 300px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(240,192,64,.3);
+  }
+  #modal-box h3 { color: var(--gold); margin-bottom: 12px; font-size: 14px; letter-spacing: 2px; }
+  #modal-box p { color: var(--text); margin-bottom: 18px; font-size: 12px; }
+  #modal-box .btns { display: flex; gap: 12px; justify-content: center; }
 
-.status { font-size: 10px; letter-spacing: 2px; opacity: 0.35; }
-.dot { display:inline-block; width:5px; height:5px; border-radius:50%; background:currentColor; margin-right:6px; vertical-align:middle; opacity:0.3; }
-.dot.on { opacity:1; }
+  #error-msg {
+    color: var(--red);
+    font-size: 11px;
+    min-height: 16px;
+    text-align: center;
+  }
+
+  /* ascii finger anim */
+  @keyframes fingerUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  #ascii-anim { animation: none; }
+  #ascii-anim.animate { animation: fingerUp .3s ease-in-out 6; }
+
+  @media (max-width: 500px) {
+    #screen-lobby { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    .lb-header, .lb-row { grid-template-columns: 20px 1fr 34px 34px 44px; font-size: 10px; }
+    body { font-size: 12px; }
+  }
 </style>
 </head>
 <body>
-<canvas id="bg"></canvas>
-
-<div class="ui">
-  <div class="themes">
-    <button class="theme-btn active" data-theme="rain">дождь</button>
-    <button class="theme-btn" data-theme="poop">какашки</button>
-    <button class="theme-btn" data-theme="fish">рыбки</button>
+<div id="header">
+  <div class="logo">★ HARD DOJO ★</div>
+  <div class="me" id="header-nick"></div>
+</div>
+<div id="app">
+  <!-- LOGIN -->
+  <div id="screen-login">
+    <div class="title">GACHI<br>ROCK PAPER SCISSORS</div>
+    <div class="sub">// ENTER THE DOJO, BROTHER //</div>
+    <input id="nick-input" maxlength="20" placeholder="ВАШ НИК" autocomplete="off" spellcheck="false">
+    <button class="btn" id="join-btn">ВОЙТИ В ДОДЗЁ</button>
+    <div id="error-msg"></div>
   </div>
 
-  <div class="name-block">
-    <div class="name-label">// YOUR NAME</div>
-    <input class="name-input" id="name" type="text" placeholder="аноним" maxlength="16" spellcheck="false">
+  <!-- LOBBY -->
+  <div id="screen-lobby" style="display:none">
+    <!-- Players -->
+    <div class="panel" style="grid-row:1/3">
+      <div class="panel-header">★ БОЙЦЫ ОНЛАЙН</div>
+      <div class="panel-body" id="players-list"></div>
+    </div>
+    <!-- Leaderboard -->
+    <div class="panel" style="grid-row:1/3">
+      <div class="panel-header">★ ТАБЛИЦА ПОЗОРА</div>
+      <div class="lb-header">
+        <span>#</span><span>НИК</span><span style="color:var(--green)">ОПР</span><span style="color:var(--red)">БЫЛ</span><span>К-ВО</span>
+      </div>
+      <div class="panel-body" id="leaderboard"></div>
+    </div>
   </div>
 
-  <button class="btn" id="btn">PING</button>
+  <!-- GAME -->
+  <div id="screen-game" style="display:none">
+    <div id="game-title">⚔ ПОЕДИНОК ⚔</div>
+    <div id="game-vs">VS <span class="opp" id="game-opp"></span></div>
+    <div id="timer-display">5</div>
+    <div id="choices">
+      <button class="choice-btn" data-choice="rock" title="Камень">🪨</button>
+      <button class="choice-btn" data-choice="scissors" title="Ножницы">✂️</button>
+      <button class="choice-btn" data-choice="paper" title="Бумага">📄</button>
+    </div>
+    <div id="waiting-msg"></div>
+  </div>
 
-  <div class="log" id="log"></div>
-  <div class="status"><span class="dot on" id="dot"></span><span id="status-text">connecting...</span></div>
+  <!-- RESULT -->
+  <div id="screen-result" style="display:none">
+    <div id="result-ascii"></div>
+    <div id="result-text"></div>
+    <div id="result-detail"></div>
+    <button class="btn" id="back-btn" style="margin-top:8px">← В ЛОББИ</button>
+  </div>
+</div>
+
+<div id="statusbar">статус: <span id="conn-status">подключение...</span></div>
+
+<!-- CHALLENGE MODAL -->
+<div id="modal" class="hidden">
+  <div id="modal-box">
+    <h3>⚔ ВЫЗОВ НА БОЙ ⚔</h3>
+    <p id="modal-text"></p>
+    <div class="btns">
+      <button class="btn btn-cyan" id="modal-accept">ПРИНЯТЬ</button>
+      <button class="btn btn-red" id="modal-decline">ОТКАЗАТЬ</button>
+    </div>
+  </div>
 </div>
 
 <script>
-// ── THEMES ──────────────────────────────────────────────
-const THEMES = {
-  rain: { bg: '#050d1a', color: '#39ff7a', label: 'дождь ⚡' },
-  poop: { bg: '#1a0d05', color: '#c8853a', label: 'PING 💩' },
-  fish: { bg: '#051018', color: '#38c8e8', label: 'PING 🐟' },
-};
-
-let currentTheme = 'rain';
-
-function applyTheme(t) {
-  currentTheme = t;
-  const th = THEMES[t];
-  document.body.style.background = th.bg;
-  document.body.style.color = th.color;
-  document.getElementById('btn').textContent = th.label;
-  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
-  initBg(t);
+const $ = id => document.getElementById(id);
+const screens = ['login','lobby','game','result'];
+function show(name) {
+  screens.forEach(s => $(`screen-${s}`).style.display = 'none');
+  $(`screen-${name}`).style.display = ['lobby'].includes(name) ? 'grid' : 'flex';
 }
 
-document.querySelectorAll('.theme-btn').forEach(b => {
-  b.addEventListener('click', () => applyTheme(b.dataset.theme));
+let ws, myNick, currentGame = null, timerInterval = null;
+let pendingChallenge = null;
+
+const CHOICE_LABELS = { rock: '🪨 КАМЕНЬ', scissors: '✂️ НОЖНИЦЫ', paper: '📄 БУМАГА', forfeit: '⏱ ВРЕМЯ' };
+
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${location.host}`);
+
+  ws.onopen = () => { $('conn-status').textContent = 'онлайн'; $('conn-status').style.color = 'var(--green)'; };
+  ws.onclose = () => {
+    $('conn-status').textContent = 'отключён — перезагрузи страницу';
+    $('conn-status').style.color = 'var(--red)';
+  };
+  ws.onmessage = e => handle(JSON.parse(e.data));
+}
+
+function send(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
+
+function handle(msg) {
+  switch (msg.type) {
+    case 'joined':
+      myNick = msg.nick;
+      $('header-nick').textContent = '[ ' + myNick + ' ]';
+      show('lobby');
+      break;
+    case 'error':
+      $('error-msg').textContent = msg.text;
+      break;
+    case 'lobby':
+      renderPlayers(msg.players);
+      renderLeaderboard(msg.leaderboard);
+      break;
+    case 'challenge_sent':
+      $('statusbar').innerHTML = `статус: <span style="color:var(--gold)">⚔ Вызов отправлен → ${msg.to}</span>`;
+      break;
+    case 'challenged':
+      pendingChallenge = { challengerId: msg.challengerId, from: msg.from };
+      $('modal-text').textContent = `${msg.from} вызывает тебя на бой, братан!`;
+      $('modal').classList.remove('hidden');
+      break;
+    case 'declined':
+      $('statusbar').innerHTML = `статус: <span style="color:var(--red)">❌ ${msg.by} отказался от боя</span>`;
+      break;
+    case 'game_start':
+      startGame(msg.gameId, msg.opponent);
+      break;
+    case 'result':
+      showResult(msg);
+      break;
+  }
+}
+
+// ---- PLAYERS ----
+function renderPlayers(players) {
+  const el = $('players-list');
+  el.innerHTML = '';
+  players.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'player-row';
+    const isMe = p.nick === myNick;
+    const inGame = p.inGame;
+    div.innerHTML = `<span class="pname${isMe ? ' me' : ''}">${p.nick}${isMe ? ' ◄' : ''}</span>
+      <span class="status${inGame ? ' ingame' : ''}">${inGame ? '⚔ В БОЮ' : isMe ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px" onclick="challenge(\''+p.nick+'\')">ВЫЗВАТЬ</button>'}</span>`;
+    el.appendChild(div);
+  });
+}
+
+function challenge(nick) {
+  send({ type: 'challenge', target: nick });
+}
+
+// ---- LEADERBOARD ----
+function renderLeaderboard(board) {
+  const el = $('leaderboard');
+  el.innerHTML = '';
+  board.forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = 'lb-row';
+    div.innerHTML = `<span class="rank">${i+1}</span><span class="lnick" title="${r.nick}">${r.nick}</span><span class="won">${r.won}</span><span class="lost">${r.lost}</span><span class="ratio">${r.ratio}</span>`;
+    el.appendChild(div);
+  });
+}
+
+// ---- GAME ----
+function startGame(gameId, opponent) {
+  $('modal').classList.add('hidden');
+  currentGame = { gameId, opponent, chosen: false };
+  $('game-opp').textContent = opponent;
+  $('waiting-msg').textContent = '';
+
+  // Reset choices
+  document.querySelectorAll('.choice-btn').forEach(b => { b.disabled = false; b.classList.remove('selected'); });
+
+  // Timer
+  let t = 5;
+  $('timer-display').textContent = t;
+  $('timer-display').classList.remove('urgent');
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    t--;
+    $('timer-display').textContent = t;
+    if (t <= 2) $('timer-display').classList.add('urgent');
+    if (t <= 0) {
+      clearInterval(timerInterval);
+      document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+      $('waiting-msg').textContent = '⏳ Ждём противника...';
+    }
+  }, 1000);
+
+  show('game');
+}
+
+document.querySelectorAll('.choice-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!currentGame || currentGame.chosen) return;
+    const choice = btn.dataset.choice;
+    currentGame.chosen = true;
+    document.querySelectorAll('.choice-btn').forEach(b => { b.disabled = true; b.classList.remove('selected'); });
+    btn.classList.add('selected');
+    $('waiting-msg').textContent = '⏳ Ждём противника...';
+    send({ type: 'choice', gameId: currentGame.gameId, choice });
+  });
 });
 
-// ── CANVAS BG ───────────────────────────────────────────
-const canvas = document.getElementById('bg');
-const ctx = canvas.getContext('2d');
-let particles = [], animId;
+// ---- RESULT ----
+const ASCII_FRAMES = [
+`  |\\
+  ||
+  ||
+ /||\\
+  ||
+  ||`,
+`  |\\ /|
+  || ||
+  || ||
+ /|| ||\\
+  || ||
+  || ||`
+];
 
-function initBg(theme) {
-  cancelAnimationFrame(animId);
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-  particles = [];
+const MOANS = ['AAAHH!!', 'OHHH!!', 'YES YES!!', 'UNNGHHH!!', 'OH BILLY~!!', 'RIGHT THERE!!'];
 
-  if (theme === 'rain') {
-    const JP = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789';
-    const cols = Math.floor(innerWidth / 14);
-    particles = Array.from({length: cols}, () => ({
-      x: 0, y: Math.random() * -innerHeight,
-      col: Math.floor(Math.random() * cols),
-      speed: 0.4 + Math.random() * 0.4,
-      char: () => JP[Math.floor(Math.random() * JP.length)],
-    }));
-    (function loop() {
-      ctx.fillStyle = 'rgba(5,13,26,0.05)';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.font = '14px monospace';
-      for (const p of particles) {
-        ctx.fillStyle = Math.random()>.97 ? '#39ff7a' : '#1a5c30';
-        ctx.fillText(p.char(), p.col*14, p.y);
-        p.y += 14 * p.speed;
-        if (p.y > canvas.height && Math.random()>.97) p.y = 0;
-      }
-      animId = requestAnimationFrame(loop);
-    })();
+function showResult(msg) {
+  clearInterval(timerInterval);
+  const ascii = $('result-ascii');
+  const text = $('result-text');
+  const detail = $('result-detail');
 
-  } else if (theme === 'poop') {
-    const CHARS = ['💩'];
-    for (let i = 0; i < 18; i++) particles.push({
-      x: Math.random()*innerWidth, y: Math.random()*innerHeight,
-      vy: 1+Math.random()*1.5, vx: (Math.random()-.5)*0.5,
-      bounce: 0.4+Math.random()*0.3, gravity: 0.08+Math.random()*0.04,
-      size: 18+Math.floor(Math.random()*20),
-      onGround: false, gy: 0,
+  const c1label = CHOICE_LABELS[msg.c1] || msg.c1;
+  const c2label = CHOICE_LABELS[msg.c2] || msg.c2;
+
+  if (msg.outcome === 'draw') {
+    ascii.textContent = '🤝';
+    ascii.style.fontSize = '48px';
+    text.textContent = '✦ НИЧЬЯ, БРАТАН! ✦';
+    text.className = 'draw';
+    detail.textContent = `${c1label} vs ${c2label}`;
+  } else if (msg.outcome === 'win') {
+    ascii.style.fontSize = '12px';
+    text.className = 'win';
+    text.textContent = `★ ТЫ ОПРИХОДОВАЛ ${msg.loser.toUpperCase()}! ★`;
+    detail.textContent = `${c1label} побил ${c2label}`;
+    animateWin(ascii, msg.winner, msg.loser, false);
+  } else {
+    ascii.style.fontSize = '12px';
+    text.className = 'lose';
+    text.textContent = `💀 ${msg.winner.toUpperCase()} ОПРИХОДОВАЛ ТЕБЯ! 💀`;
+    detail.textContent = `${msg.c2} побил ${msg.c1} • ${c1label} vs ${c2label}`;
+    animateLose(ascii, msg.winner, msg.loser);
+    playMoan();
+  }
+
+  show('result');
+}
+
+function animateWin(el, winner, loser, isLoser) {
+  const frames = [
+`  👆
+  ПОБЕДА!
+  ЙААА!!`,
+`  ☝️☝️
+  ${winner}
+  ДОМИНИРУЕТ!`,
+`  👆
+  ${loser}
+  ПОЛУЧИЛ!`
+  ];
+  let i = 0;
+  const iv = setInterval(() => {
+    el.textContent = frames[i % frames.length];
+    i++;
+    if (i > 12) clearInterval(iv);
+  }, 300);
+}
+
+function animateLose(el, winner, loser) {
+  const frames = [
+`  😭
+  ...`,
+`  💀
+  АУЧ!!`,
+`  ☝️
+  ${winner}
+  ДОМИНИРУЕТ
+  НАД ${loser}`,
+`  💦
+  ПОЗОР!!!`
+  ];
+  let i = 0;
+  const iv = setInterval(() => {
+    el.textContent = frames[i % frames.length];
+    i++;
+    if (i > 14) clearInterval(iv);
+  }, 280);
+}
+
+function playMoan() {
+  // Web Audio API buzz for dramatic effect (no external audio needed)
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const sequence = [120, 180, 140, 220, 160];
+    let t = ctx.currentTime;
+    sequence.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, t + i * 0.18);
+      gain.gain.setValueAtTime(0.08, t + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.18 + 0.15);
+      osc.start(t + i * 0.18);
+      osc.stop(t + i * 0.18 + 0.16);
     });
-    (function loop() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      for (const p of particles) {
-        p.vy += p.gravity;
-        p.y += p.vy; p.x += p.vx;
-        if (p.y > canvas.height - p.size) {
-          p.y = canvas.height - p.size;
-          p.vy *= -p.bounce;
-          if (Math.abs(p.vy) < 0.5) p.vy = 0;
-        }
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        ctx.font = p.size + 'px serif';
-        ctx.fillText('💩', p.x, p.y);
-      }
-      animId = requestAnimationFrame(loop);
-    })();
-
-  } else if (theme === 'fish') {
-    for (let i = 0; i < 14; i++) particles.push({
-      x: Math.random()*innerWidth, y: Math.random()*innerHeight,
-      vx: (Math.random()>.5?1:-1)*(0.5+Math.random()),
-      vy: (Math.random()-.5)*0.3,
-      size: 16+Math.floor(Math.random()*18),
-      wobble: Math.random()*Math.PI*2,
-    });
-    (function loop() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      for (const p of particles) {
-        p.wobble += 0.05;
-        p.x += p.vx; p.y += p.vy + Math.sin(p.wobble)*0.4;
-        if (p.x < -40) p.x = canvas.width+40;
-        if (p.x > canvas.width+40) p.x = -40;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
-        ctx.save();
-        ctx.font = p.size + 'px serif';
-        if (p.vx < 0) {
-          ctx.translate(p.x + p.size, p.y);
-          ctx.scale(-1, 1);
-          ctx.fillText('🐟', 0, 0);
-        } else {
-          ctx.fillText('🐟', p.x, p.y);
-        }
-        ctx.restore();
-      }
-      animId = requestAnimationFrame(loop);
-    })();
-  }
-}
-
-window.addEventListener('resize', () => initBg(currentTheme));
-
-// ── AUDIO ────────────────────────────────────────────────
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let actx;
-
-function getACtx() {
-  if (!actx) actx = new AudioCtx();
-  return actx;
-}
-
-function playThunder() {
-  const a = getACtx();
-  const buf = a.createBuffer(1, a.sampleRate * 1.2, a.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) {
-    d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 0.4);
-  }
-  const src = a.createBufferSource();
-  src.buffer = buf;
-  const g = a.createGain(); g.gain.setValueAtTime(0.8, a.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, a.currentTime+1.2);
-  const f = a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=300;
-  src.connect(f); f.connect(g); g.connect(a.destination);
-  src.start();
-}
-
-function playFart() {
-  const a = getACtx();
-  const osc = a.createOscillator();
-  const g = a.createGain();
-  osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(120 + Math.random()*60, a.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(40, a.currentTime+0.4);
-  g.gain.setValueAtTime(0.6, a.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, a.currentTime+0.4);
-  const f = a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=400;
-  osc.connect(f); f.connect(g); g.connect(a.destination);
-  osc.start(); osc.stop(a.currentTime+0.4);
-}
-
-function playBloop() {
-  const a = getACtx();
-  const osc = a.createOscillator();
-  const g = a.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(200, a.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(600 + Math.random()*200, a.currentTime+0.1);
-  osc.frequency.exponentialRampToValueAtTime(150, a.currentTime+0.35);
-  g.gain.setValueAtTime(0.5, a.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, a.currentTime+0.35);
-  osc.connect(g); g.connect(a.destination);
-  osc.start(); osc.stop(a.currentTime+0.4);
-}
-
-function playSound() {
-  if (currentTheme === 'rain') playThunder();
-  else if (currentTheme === 'poop') playFart();
-  else if (currentTheme === 'fish') playBloop();
-}
-
-// ── WEBSOCKET ────────────────────────────────────────────
-const proto = location.protocol==='https:'?'wss':'ws';
-const ws = new WebSocket(proto+'://'+location.host);
-const dot = document.getElementById('dot');
-const statusText = document.getElementById('status-text');
-const nameInput = document.getElementById('name');
-const logEl = document.getElementById('log');
-const btn = document.getElementById('btn');
-
-ws.onopen = () => { dot.classList.add('on'); statusText.textContent = 'connected — 1 online'; };
-ws.onclose = () => { dot.classList.remove('on'); statusText.textContent = 'disconnected'; };
-ws.onmessage = e => {
-  const msg = JSON.parse(e.data);
-  if (msg.type === 'users') statusText.textContent = 'connected — '+msg.count+' online';
-  if (msg.type === 'ping') {
-    addLog(msg.name+' нажал!', msg.name===(nameInput.value.trim()||'аноним'));
-    flashBtn();
-    playSound();
-  }
-};
-
-btn.addEventListener('click', () => {
-  const name = nameInput.value.trim()||'аноним';
-  ws.send(JSON.stringify({type:'ping', name}));
-  const r = document.createElement('div');
-  r.className = 'ripple';
-  btn.appendChild(r);
-  setTimeout(()=>r.remove(), 800);
-});
-
-function flashBtn() {
-  btn.style.background = 'rgba(255,255,255,0.18)';
-  setTimeout(()=>btn.style.background='', 200);
-}
-
-function addLog(text, own) {
-  const now = new Date();
-  const t = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+  } catch(e) {}
+  // Show moan text
+  const moan = MOANS[Math.floor(Math.random() * MOANS.length)];
   const el = document.createElement('div');
-  el.className = 'log-entry'+(own?' own':'');
-  el.textContent = '['+t+'] '+text;
-  logEl.prepend(el);
-  if (logEl.children.length>20) logEl.lastChild.remove();
+  el.style.cssText = 'position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);font-size:28px;color:#e03030;text-shadow:0 0 20px #e03030;z-index:200;pointer-events:none;animation:fadeOut 2s forwards;font-family:Share Tech Mono,monospace;';
+  el.textContent = moan;
+  document.body.appendChild(el);
+  const style = document.createElement('style');
+  style.textContent = '@keyframes fadeOut{0%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-80%) scale(0.8)}}';
+  document.head.appendChild(style);
+  setTimeout(() => { el.remove(); style.remove(); }, 2200);
 }
 
-applyTheme('rain');
+// ---- MODAL ----
+$('modal-accept').onclick = () => {
+  if (!pendingChallenge) return;
+  send({ type: 'accept', challengerId: pendingChallenge.challengerId });
+  $('modal').classList.add('hidden');
+  pendingChallenge = null;
+};
+$('modal-decline').onclick = () => {
+  if (!pendingChallenge) return;
+  send({ type: 'decline', challengerId: pendingChallenge.challengerId });
+  $('modal').classList.add('hidden');
+  pendingChallenge = null;
+};
+
+// ---- BACK ----
+$('back-btn').onclick = () => {
+  currentGame = null;
+  show('lobby');
+  $('statusbar').innerHTML = 'статус: <span style="color:var(--green)">в лобби</span>';
+};
+
+// ---- LOGIN ----
+$('join-btn').onclick = () => {
+  const nick = $('nick-input').value.trim();
+  if (!nick) { $('error-msg').textContent = 'Введи ник, братан!'; return; }
+  $('error-msg').textContent = '';
+  send({ type: 'join', nick });
+};
+$('nick-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('join-btn').click(); });
+
+// ---- INIT ----
+connect();
+show('login');
 </script>
 </body>
 </html>

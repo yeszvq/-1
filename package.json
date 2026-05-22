@@ -1,12 +1,13 @@
 {
-  "name": "pingapp",
+  "name": "gachi-rps",
   "version": "1.0.0",
+  "description": "Gachi Rock Paper Scissors",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "ws": "^8.14.2"
+    "ws": "^8.16.0"
   }
 }
