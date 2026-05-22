@@ -8,24 +8,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root {
-  --bg: #050d1a;
-  --green: #39ff7a;
-  --green-dim: #1a5c30;
-  --text-dim: #3a7a50;
-}
-
 html, body {
   width: 100%; height: 100%;
-  background: var(--bg);
+  background: #050d1a;
   font-family: 'Share Tech Mono', monospace;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 32px;
+  gap: 24px;
   overflow: hidden;
-  color: var(--green);
+  color: #39ff7a;
+  transition: background 0.5s;
 }
 
 body::after {
@@ -34,164 +28,329 @@ body::after {
   inset: 0;
   background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
   pointer-events: none;
+  z-index: 10;
 }
 
-.name-block {
+canvas#bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.22;
+}
+
+.ui { position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+
+/* THEME PICKER */
+.themes {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
-.name-label { font-size: 11px; letter-spacing: 3px; color: var(--text-dim); }
-.name-input {
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--green-dim);
-  color: var(--green);
+.theme-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.5);
   font-family: 'Share Tech Mono', monospace;
-  font-size: 18px;
-  text-align: center;
-  outline: none;
-  padding: 4px 8px;
-  width: 200px;
-  caret-color: var(--green);
+  font-size: 12px;
+  padding: 6px 14px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+  letter-spacing: 1px;
 }
-.name-input::placeholder { color: var(--text-dim); opacity: 0.5; }
+.theme-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+.theme-btn.active { border-color: currentColor; color: inherit; }
+
+.name-block { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.name-label { font-size: 10px; letter-spacing: 3px; opacity: 0.4; }
+.name-input {
+  background: none; border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  color: inherit;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px; text-align: center; outline: none;
+  padding: 4px 8px; width: 180px; caret-color: currentColor;
+}
+.name-input::placeholder { opacity: 0.3; }
 
 .btn {
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  border: 2px solid var(--green-dim);
-  background: rgba(57,255,122,0.04);
-  color: var(--green);
+  width: 160px; height: 160px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.04);
+  color: inherit;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 22px;
-  letter-spacing: 4px;
+  font-size: 20px; letter-spacing: 3px;
   cursor: pointer;
   transition: all 0.1s;
-  position: relative;
-  overflow: hidden;
+  position: relative; overflow: hidden;
 }
-.btn:hover {
-  border-color: var(--green);
-  background: rgba(57,255,122,0.08);
-  box-shadow: 0 0 30px rgba(57,255,122,0.15);
-}
-.btn:active, .btn.pressed {
-  background: rgba(57,255,122,0.18);
-  box-shadow: 0 0 60px rgba(57,255,122,0.35);
-  transform: scale(0.96);
-}
+.btn:hover { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); }
+.btn:active { transform: scale(0.95); background: rgba(255,255,255,0.15); }
 
 .ripple {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid var(--green);
-  animation: ripple-out 0.6s ease-out forwards;
+  position: absolute; border-radius: 50%;
+  border: 1px solid currentColor;
+  animation: ripple-out 0.7s ease-out forwards;
   pointer-events: none;
 }
 @keyframes ripple-out {
-  0% { width: 0; height: 0; top: 50%; left: 50%; opacity: 1; transform: translate(-50%,-50%); }
-  100% { width: 300px; height: 300px; top: 50%; left: 50%; opacity: 0; transform: translate(-50%,-50%); }
+  0%   { width:0; height:0; top:50%; left:50%; opacity:1; transform:translate(-50%,-50%); }
+  100% { width:280px; height:280px; top:50%; left:50%; opacity:0; transform:translate(-50%,-50%); }
 }
 
-.log {
-  width: 320px;
-  max-height: 140px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 4px;
-}
-.log-entry {
-  font-size: 12px;
-  color: var(--text-dim);
-  letter-spacing: 1px;
-  animation: fadein 0.3s ease;
-}
-.log-entry.own { color: var(--green); }
-@keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.log { width: 300px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 3px; }
+.log-entry { font-size: 11px; opacity: 0.5; animation: fadein 0.3s ease; letter-spacing: 1px; }
+.log-entry.own { opacity: 1; }
+@keyframes fadein { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
-.status {
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: var(--text-dim);
-}
-.dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); margin-right: 6px; vertical-align: middle; }
-.dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status { font-size: 10px; letter-spacing: 2px; opacity: 0.35; }
+.dot { display:inline-block; width:5px; height:5px; border-radius:50%; background:currentColor; margin-right:6px; vertical-align:middle; opacity:0.3; }
+.dot.on { opacity:1; }
 </style>
 </head>
 <body>
+<canvas id="bg"></canvas>
 
-<div class="name-block">
-  <div class="name-label">// YOUR NAME</div>
-  <input class="name-input" id="name" type="text" placeholder="аноним" maxlength="16" spellcheck="false">
+<div class="ui">
+  <div class="themes">
+    <button class="theme-btn active" data-theme="rain">дождь</button>
+    <button class="theme-btn" data-theme="poop">какашки</button>
+    <button class="theme-btn" data-theme="fish">рыбки</button>
+  </div>
+
+  <div class="name-block">
+    <div class="name-label">// YOUR NAME</div>
+    <input class="name-input" id="name" type="text" placeholder="аноним" maxlength="16" spellcheck="false">
+  </div>
+
+  <button class="btn" id="btn">PING</button>
+
+  <div class="log" id="log"></div>
+  <div class="status"><span class="dot on" id="dot"></span><span id="status-text">connecting...</span></div>
 </div>
 
-<button class="btn" id="btn">PING</button>
-
-<div class="log" id="log"></div>
-
-<div class="status"><span class="dot" id="dot"></span><span id="status-text">connecting...</span></div>
-
 <script>
-const btn = document.getElementById('btn');
-const logEl = document.getElementById('log');
+// ── THEMES ──────────────────────────────────────────────
+const THEMES = {
+  rain: { bg: '#050d1a', color: '#39ff7a', label: 'дождь ⚡' },
+  poop: { bg: '#1a0d05', color: '#c8853a', label: 'PING 💩' },
+  fish: { bg: '#051018', color: '#38c8e8', label: 'PING 🐟' },
+};
+
+let currentTheme = 'rain';
+
+function applyTheme(t) {
+  currentTheme = t;
+  const th = THEMES[t];
+  document.body.style.background = th.bg;
+  document.body.style.color = th.color;
+  document.getElementById('btn').textContent = th.label;
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+  initBg(t);
+}
+
+document.querySelectorAll('.theme-btn').forEach(b => {
+  b.addEventListener('click', () => applyTheme(b.dataset.theme));
+});
+
+// ── CANVAS BG ───────────────────────────────────────────
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let particles = [], animId;
+
+function initBg(theme) {
+  cancelAnimationFrame(animId);
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+  particles = [];
+
+  if (theme === 'rain') {
+    const JP = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789';
+    const cols = Math.floor(innerWidth / 14);
+    particles = Array.from({length: cols}, () => ({
+      x: 0, y: Math.random() * -innerHeight,
+      col: Math.floor(Math.random() * cols),
+      speed: 0.4 + Math.random() * 0.4,
+      char: () => JP[Math.floor(Math.random() * JP.length)],
+    }));
+    (function loop() {
+      ctx.fillStyle = 'rgba(5,13,26,0.05)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.font = '14px monospace';
+      for (const p of particles) {
+        ctx.fillStyle = Math.random()>.97 ? '#39ff7a' : '#1a5c30';
+        ctx.fillText(p.char(), p.col*14, p.y);
+        p.y += 14 * p.speed;
+        if (p.y > canvas.height && Math.random()>.97) p.y = 0;
+      }
+      animId = requestAnimationFrame(loop);
+    })();
+
+  } else if (theme === 'poop') {
+    const CHARS = ['💩'];
+    for (let i = 0; i < 18; i++) particles.push({
+      x: Math.random()*innerWidth, y: Math.random()*innerHeight,
+      vy: 1+Math.random()*1.5, vx: (Math.random()-.5)*0.5,
+      bounce: 0.4+Math.random()*0.3, gravity: 0.08+Math.random()*0.04,
+      size: 18+Math.floor(Math.random()*20),
+      onGround: false, gy: 0,
+    });
+    (function loop() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for (const p of particles) {
+        p.vy += p.gravity;
+        p.y += p.vy; p.x += p.vx;
+        if (p.y > canvas.height - p.size) {
+          p.y = canvas.height - p.size;
+          p.vy *= -p.bounce;
+          if (Math.abs(p.vy) < 0.5) p.vy = 0;
+        }
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        ctx.font = p.size + 'px serif';
+        ctx.fillText('💩', p.x, p.y);
+      }
+      animId = requestAnimationFrame(loop);
+    })();
+
+  } else if (theme === 'fish') {
+    for (let i = 0; i < 14; i++) particles.push({
+      x: Math.random()*innerWidth, y: Math.random()*innerHeight,
+      vx: (Math.random()>.5?1:-1)*(0.5+Math.random()),
+      vy: (Math.random()-.5)*0.3,
+      size: 16+Math.floor(Math.random()*18),
+      wobble: Math.random()*Math.PI*2,
+    });
+    (function loop() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for (const p of particles) {
+        p.wobble += 0.05;
+        p.x += p.vx; p.y += p.vy + Math.sin(p.wobble)*0.4;
+        if (p.x < -40) p.x = canvas.width+40;
+        if (p.x > canvas.width+40) p.x = -40;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+        ctx.save();
+        ctx.font = p.size + 'px serif';
+        if (p.vx < 0) {
+          ctx.translate(p.x + p.size, p.y);
+          ctx.scale(-1, 1);
+          ctx.fillText('🐟', 0, 0);
+        } else {
+          ctx.fillText('🐟', p.x, p.y);
+        }
+        ctx.restore();
+      }
+      animId = requestAnimationFrame(loop);
+    })();
+  }
+}
+
+window.addEventListener('resize', () => initBg(currentTheme));
+
+// ── AUDIO ────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let actx;
+
+function getACtx() {
+  if (!actx) actx = new AudioCtx();
+  return actx;
+}
+
+function playThunder() {
+  const a = getACtx();
+  const buf = a.createBuffer(1, a.sampleRate * 1.2, a.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) {
+    d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 0.4);
+  }
+  const src = a.createBufferSource();
+  src.buffer = buf;
+  const g = a.createGain(); g.gain.setValueAtTime(0.8, a.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, a.currentTime+1.2);
+  const f = a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=300;
+  src.connect(f); f.connect(g); g.connect(a.destination);
+  src.start();
+}
+
+function playFart() {
+  const a = getACtx();
+  const osc = a.createOscillator();
+  const g = a.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(120 + Math.random()*60, a.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(40, a.currentTime+0.4);
+  g.gain.setValueAtTime(0.6, a.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, a.currentTime+0.4);
+  const f = a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=400;
+  osc.connect(f); f.connect(g); g.connect(a.destination);
+  osc.start(); osc.stop(a.currentTime+0.4);
+}
+
+function playBloop() {
+  const a = getACtx();
+  const osc = a.createOscillator();
+  const g = a.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(200, a.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(600 + Math.random()*200, a.currentTime+0.1);
+  osc.frequency.exponentialRampToValueAtTime(150, a.currentTime+0.35);
+  g.gain.setValueAtTime(0.5, a.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, a.currentTime+0.35);
+  osc.connect(g); g.connect(a.destination);
+  osc.start(); osc.stop(a.currentTime+0.4);
+}
+
+function playSound() {
+  if (currentTheme === 'rain') playThunder();
+  else if (currentTheme === 'poop') playFart();
+  else if (currentTheme === 'fish') playBloop();
+}
+
+// ── WEBSOCKET ────────────────────────────────────────────
+const proto = location.protocol==='https:'?'wss':'ws';
+const ws = new WebSocket(proto+'://'+location.host);
 const dot = document.getElementById('dot');
 const statusText = document.getElementById('status-text');
 const nameInput = document.getElementById('name');
+const logEl = document.getElementById('log');
+const btn = document.getElementById('btn');
 
-const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-const ws = new WebSocket(proto + '://' + location.host);
-
-ws.onopen = () => {
-  dot.classList.add('on');
-  statusText.textContent = 'connected — 1 online';
-};
-
-ws.onclose = () => {
-  dot.classList.remove('on');
-  statusText.textContent = 'disconnected';
-};
-
-ws.onmessage = (e) => {
+ws.onopen = () => { dot.classList.add('on'); statusText.textContent = 'connected — 1 online'; };
+ws.onclose = () => { dot.classList.remove('on'); statusText.textContent = 'disconnected'; };
+ws.onmessage = e => {
   const msg = JSON.parse(e.data);
-  if (msg.type === 'users') {
-    statusText.textContent = 'connected — ' + msg.count + ' online';
-  }
+  if (msg.type === 'users') statusText.textContent = 'connected — '+msg.count+' online';
   if (msg.type === 'ping') {
-    addLog(msg.name + ' нажал!', msg.name === (nameInput.value.trim() || 'аноним'));
-    flash();
+    addLog(msg.name+' нажал!', msg.name===(nameInput.value.trim()||'аноним'));
+    flashBtn();
+    playSound();
   }
 };
 
 btn.addEventListener('click', () => {
-  const name = nameInput.value.trim() || 'аноним';
-  ws.send(JSON.stringify({ type: 'ping', name }));
-  // ripple
+  const name = nameInput.value.trim()||'аноним';
+  ws.send(JSON.stringify({type:'ping', name}));
   const r = document.createElement('div');
   r.className = 'ripple';
   btn.appendChild(r);
-  setTimeout(() => r.remove(), 700);
+  setTimeout(()=>r.remove(), 800);
 });
 
-function flash() {
-  btn.classList.add('pressed');
-  setTimeout(() => btn.classList.remove('pressed'), 200);
+function flashBtn() {
+  btn.style.background = 'rgba(255,255,255,0.18)';
+  setTimeout(()=>btn.style.background='', 200);
 }
 
 function addLog(text, own) {
   const now = new Date();
-  const t = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  const t = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
   const el = document.createElement('div');
-  el.className = 'log-entry' + (own ? ' own' : '');
-  el.textContent = '[' + t + '] ' + text;
+  el.className = 'log-entry'+(own?' own':'');
+  el.textContent = '['+t+'] '+text;
   logEl.prepend(el);
-  if (logEl.children.length > 20) logEl.lastChild.remove();
+  if (logEl.children.length>20) logEl.lastChild.remove();
 }
 
-function pad(n) { return String(n).padStart(2,'0'); }
+applyTheme('rain');
 </script>
 </body>
 </html>
