@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PING</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #050d1a;
+  --green: #39ff7a;
+  --green-dim: #1a5c30;
+  --text-dim: #3a7a50;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  font-family: 'Share Tech Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  overflow: hidden;
+  color: var(--green);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+  pointer-events: none;
+}
+
+.name-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.name-label { font-size: 11px; letter-spacing: 3px; color: var(--text-dim); }
+.name-input {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px;
+  text-align: center;
+  outline: none;
+  padding: 4px 8px;
+  width: 200px;
+  caret-color: var(--green);
+}
+.name-input::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+.btn {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2px solid var(--green-dim);
+  background: rgba(57,255,122,0.04);
+  color: var(--green);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 22px;
+  letter-spacing: 4px;
+  cursor: pointer;
+  transition: all 0.1s;
+  position: relative;
+  overflow: hidden;
+}
+.btn:hover {
+  border-color: var(--green);
+  background: rgba(57,255,122,0.08);
+  box-shadow: 0 0 30px rgba(57,255,122,0.15);
+}
+.btn:active, .btn.pressed {
+  background: rgba(57,255,122,0.18);
+  box-shadow: 0 0 60px rgba(57,255,122,0.35);
+  transform: scale(0.96);
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--green);
+  animation: ripple-out 0.6s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes ripple-out {
+  0% { width: 0; height: 0; top: 50%; left: 50%; opacity: 1; transform: translate(-50%,-50%); }
+  100% { width: 300px; height: 300px; top: 50%; left: 50%; opacity: 0; transform: translate(-50%,-50%); }
+}
+
+.log {
+  width: 320px;
+  max-height: 140px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+}
+.log-entry {
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  animation: fadein 0.3s ease;
+}
+.log-entry.own { color: var(--green); }
+@keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.status {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+}
+.dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); margin-right: 6px; vertical-align: middle; }
+.dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+</style>
+</head>
+<body>
+
+<div class="name-block">
+  <div class="name-label">// YOUR NAME</div>
+  <input class="name-input" id="name" type="text" placeholder="аноним" maxlength="16" spellcheck="false">
+</div>
+
+<button class="btn" id="btn">PING</button>
+
+<div class="log" id="log"></div>
+
+<div class="status"><span class="dot" id="dot"></span><span id="status-text">connecting...</span></div>
+
+<script>
+const btn = document.getElementById('btn');
+const logEl = document.getElementById('log');
+const dot = document.getElementById('dot');
+const statusText = document.getElementById('status-text');
+const nameInput = document.getElementById('name');
+
+const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+const ws = new WebSocket(proto + '://' + location.host);
+
+ws.onopen = () => {
+  dot.classList.add('on');
+  statusText.textContent = 'connected — 1 online';
+};
+
+ws.onclose = () => {
+  dot.classList.remove('on');
+  statusText.textContent = 'disconnected';
+};
+
+ws.onmessage = (e) => {
+  const msg = JSON.parse(e.data);
+  if (msg.type === 'users') {
+    statusText.textContent = 'connected — ' + msg.count + ' online';
+  }
+  if (msg.type === 'ping') {
+    addLog(msg.name + ' нажал!', msg.name === (nameInput.value.trim() || 'аноним'));
+    flash();
+  }
+};
+
+btn.addEventListener('click', () => {
+  const name = nameInput.value.trim() || 'аноним';
+  ws.send(JSON.stringify({ type: 'ping', name }));
+  // ripple
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  btn.appendChild(r);
+  setTimeout(() => r.remove(), 700);
+});
+
+function flash() {
+  btn.classList.add('pressed');
+  setTimeout(() => btn.classList.remove('pressed'), 200);
+}
+
+function addLog(text, own) {
+  const now = new Date();
+  const t = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  const el = document.createElement('div');
+  el.className = 'log-entry' + (own ? ' own' : '');
+  el.textContent = '[' + t + '] ' + text;
+  logEl.prepend(el);
+  if (logEl.children.length > 20) logEl.lastChild.remove();
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+</script>
+</body>
+</html>
